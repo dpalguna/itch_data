@@ -84,26 +84,25 @@ int main()
                                           o_timeStamp.second, o_addOrderMessage.timeStamp);
                      orderID_to_properties.insert(pair<uint64_t,order>
                           (static_cast<uint64_t>(o_addOrderMessage.OID), tempOrder));
-                     //o_addOrderMessage.print();
-                     if(o_addOrderMessage.OID>=12232693 && debugMode == 1 && !bidBook.empty() && !askBook.empty())
-                         {
-                           cout<<endl<<"Before insert:-----------------------------------------"<<o_timeStamp.second;
-                           o_addOrderMessage.print();
-                           print_order_book(bidBook, askBook);
-                           
-                        }
+                     /*if(o_addOrderMessage.OID>=12232693)
+                        {
+                         cout<<endl<<"Before adding:------------";
+                         o_addOrderMessage.print();
+                         print_order_book(bidBook, askBook);
+                        }*/
                      bool uncross = 0;
                      if(tempOrder.shares >0) 
       						 {
                            uncross = add_order_book_entry(tempOrder,bidBook,askBook, 'A');
 								 }
-                   
-                    if(o_addOrderMessage.OID>=12232693  && debugMode == 1 && !bidBook.empty() && !askBook.empty() )
-                         {
-                           cout<<endl<<"After insert:----------------------------------------Uncross="<<uncross;
-                           print_order_book(bidBook, askBook);
-                           cin.get();
-                         }
+                     /*if(o_addOrderMessage.OID>=12232693)
+                        {
+                         cout<<endl<<"After event--------------Uncross="<<uncross;
+                         print_order_book(bidBook, askBook);
+                         ////cin.get();
+                        }*/
+                     
+                    
                      }
                      break;
            case 'F': {
@@ -113,24 +112,18 @@ int main()
                      tempOrder.initialize(o_addOrderMessageAttribution.OID, o_addOrderMessageAttribution.price, 
                                           o_addOrderMessageAttribution.shares, o_addOrderMessageAttribution.buySellIndicator,
 														o_timeStamp.second,o_addOrderMessageAttribution.timeStamp);
-                     orderID_to_properties.insert(pair<uint64_t,order>
+							orderID_to_properties.insert(pair<uint64_t,order>
                           (static_cast<uint64_t>(o_addOrderMessageAttribution.OID), tempOrder));
-          				o_addOrderMessageAttribution.print();
-                       /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
-                         {
-                           cout<<endl<<"Before insert:-----------------------------------------"<<o_timeStamp.second;
-     								o_addOrderMessageAttribution.print();
-                           //print_order_book(bidBook, askBook);                     
- 						       }*/
+          				
  							bool uncross = 0;
                      if(tempOrder.shares > 0) uncross = add_order_book_entry(tempOrder,bidBook,askBook, 'F');
-                     /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
-                         {
-                           cout<<endl<<"After insert:--------------------------------------------Uncross="<<uncross;
-                           //print_order_book(bidBook, askBook);
-                           //cin.get();
-                         }*/
-                     
+                     /*if(o_addOrderMessageAttribution.OID>=12232693)
+                        {
+                         o_addOrderMessageAttribution.print();
+                         print_order_book(bidBook, askBook);
+                         ////cin.get();
+                        }*/
+                                         
                      break;
 							}
            case 'E': {
@@ -138,29 +131,31 @@ int main()
                      input_file.read((char*)&o_orderExecutedMessage,sizeof(orderExecutedMessage));
                      map<uint64_t, order>::iterator it;
                      it = orderID_to_properties.find(static_cast<uint64_t>(o_orderExecutedMessage.OID)); 
-                    o_orderExecutedMessage.print();
-                     /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
+                     
+                     if(o_addOrderMessage.OID>=12232693)
                          {
                            cout<<endl<<"Before execution:------------------------------------------------------------";
      								o_orderExecutedMessage.print();
-                           //print_order_book(bidBook, askBook);                     
-                         }*/
+                           print_order_book(bidBook, askBook);                     
+                         }
                       if(it == orderID_to_properties.end())
                         {
-                           //cout<<endl<<"Executing an order not in the OID map!!";
+                           cout<<endl<<"Executing an order not in the OID map!!";
                         }
                       else
                         {
-
-  									order tempOrder = it->second; //Order that is getting executed
-									execute_order_book_entry(tempOrder, o_orderExecutedMessage.executedShares, bidBook, askBook);
-                        }
-                     /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
-                         {
+               				order tempOrder = it->second; //Order that is getting executed
+									bool violPriority = execute_order_book_entry(tempOrder, o_orderExecutedMessage.executedShares, bidBook, askBook);
+                           if(violPriority) {cout<<endl<<"Priority violated";} 
+                          if(o_addOrderMessage.OID>=12232693)
+                           {
+                           cout<<endl<<"Details of order getting executed:"<<it->second.price<<" "<<it->second.OID;
                            cout<<endl<<"After execution:------------------------------------------------------------";
-                           //print_order_book(bidBook, askBook);                     
- 							 		//cin.get();
-                         }*/
+                           print_order_book(bidBook, askBook);                     
+ 							 		cin.get();
+                          }
+                        }
+                     
                       
                      ////print_order_book(bidBook, askBook); 
                      }
@@ -170,30 +165,32 @@ int main()
                      input_file.read((char*)&o_orderExecutedWithPriceMessage,sizeof(orderExecutedWithPriceMessage));
                      map<uint64_t, order>::iterator it;
                      it = orderID_to_properties.find(static_cast<uint64_t>(o_orderExecutedWithPriceMessage.OID)); 
-                     o_orderExecutedWithPriceMessage.print();
-                     /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
-                        {
-									cout<<endl<<"Before execution:------------------------------------------------------------";
-     						 		o_orderExecutedWithPriceMessage.print();
-                           //print_order_book(bidBook, askBook);                     
- 									
-                        }*/
+							if(o_addOrderMessage.OID>=12232693)
+                         {
+                           cout<<endl<<"Before execution:------------------------------------------------------------";
+     								o_orderExecutedWithPriceMessage.print();
+                           print_order_book(bidBook, askBook);                     
+                         }
+                     
                       if(it == orderID_to_properties.end()&& debugMode == 1)
                         {
-                           //cout<<endl<<"Executing an order not in the OID map!!";
+                           cout<<endl<<"Executing an order not in the OID map!!";
+                           cin.get();
                         }
                       else
                         {
   									order tempOrder = it->second; //Order that is getting executed
 									execute_order_book_entry(tempOrder, o_orderExecutedWithPriceMessage.executedShares, bidBook, askBook);
+                          if(o_addOrderMessage.OID>=12232693)
+                           {
+                           cout<<endl<<"Details of order getting executed:"<<it->second.price<<" "<<it->second.OID;
+                           cout<<endl<<"After execution:------------------------------------------------------------";
+                           //print_order_book(bidBook, askBook);                     
+ 							 		cin.get();
+                           }
+                     
                         }
-                       /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
-                        {
-									cout<<endl<<"After execution:------------------------------------------------------------";
-                           //print_order_book(bidBook, askBook);   
-									//cin.get();                  
-                        }*/
-                   
+							 
                      }
                      break;
            case 'X': {
@@ -201,7 +198,7 @@ int main()
                      input_file.read((char*)&o_orderCancelMessage,sizeof(orderCancelMessage));
                      map<uint64_t, order>::iterator it;
                      it = orderID_to_properties.find(static_cast<uint64_t>(o_orderCancelMessage.OID)); 
-                  	
+
 							/*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
                          {
                            cout<<endl<<"Before cancel:----------------------------------------"; 
@@ -222,6 +219,12 @@ int main()
                            cout<<endl<<"After cancel:----------------------------------------"; 
                            //print_order_book(bidBook, askBook);                     
                          }*/
+                      /*if(o_addOrderMessage.OID>=12232693)
+                        {
+                         o_orderCancelMessage.print();
+                         print_order_book(bidBook, askBook);
+                         ////cin.get();
+                        }*/
                      }
                      break;
            case 'D': {
@@ -229,7 +232,7 @@ int main()
                      input_file.read((char*)&o_orderDeleteMessage,sizeof(orderDeleteMessage));
                      map<uint64_t, order>::iterator it;
                      it = orderID_to_properties.find(static_cast<uint64_t>(o_orderDeleteMessage.OID)); 
-o_orderDeleteMessage.print();
+
  							/*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
                          {
                            cout<<endl<<"Before delete:----------------------------------------";
@@ -250,8 +253,14 @@ o_orderDeleteMessage.print();
                          {
                            cout<<endl<<"After delete:----------------------------------------";
                            //print_order_book(bidBook, askBook);                     
-									//cin.get();
+									//////cin.get();
                          }*/
+                      /*if(o_addOrderMessage.OID>=12232693)
+                        {
+                         o_orderDeleteMessage.print();
+                         print_order_book(bidBook, askBook);
+                         ////cin.get();
+                        }*/
 
                      }
                      break;
@@ -261,6 +270,7 @@ o_orderDeleteMessage.print();
                      order deleteOrder;
                      map<uint64_t, order>::iterator it;
                      it = orderID_to_properties.find(static_cast<uint64_t>(o_orderReplaceMessage.originalOID)); 
+                         
                        /*if(debugMode == 1 && !bidBook.empty() && !askBook.empty() && start_of_trading)
                          {
                            cout<<endl<<"Before replace:------------------------------------------";
@@ -290,8 +300,14 @@ o_orderDeleteMessage.print();
                            cout<<endl<<"After replace:------------------------------------------";
      								o_orderReplaceMessage.print();
                            //print_order_book(bidBook, askBook);                     
-                           //cin.get();
+                           //////cin.get();
                          }*/
+                      /*if(o_addOrderMessage.OID>=12232693)
+                        {
+                         o_orderReplaceMessage.print();
+                         print_order_book(bidBook, askBook);
+                         ////cin.get();
+                        }*/
 
                      }
                      break;
